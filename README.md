@@ -1,4 +1,4 @@
-# ✨🤖 Automated AI-Powered Social Media Content Factory
+# AI-Powered Social Media Content Automation
 
 This repository contains an n8n workflow that generates platform-optimized social media content using AI agents and optionally publishes it to X, Facebook, Instagram, LinkedIn and other platforms after approval.
 
