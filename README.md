@@ -1,109 +1,117 @@
 # AI-Powered Social Media Content Automation
 
-This repository contains an n8n workflow that generates platform-optimized social media content using AI agents and optionally publishes it to X, Facebook, Instagram, LinkedIn and other platforms after approval.
+An n8n workflow that turns a content brief into platform-specific social posts, routes drafts through a human approval step, and can publish approved content to configured social channels.
 
-Source workflow file: `AI-Powered-Content-Creation-using-n8n-.json` (import into n8n to use).
+> **Project history:** built in October 2025. Documentation reviewed in August 2026. The committed JSON is an exported workflow snapshot, so node/provider compatibility depends on the n8n version and credentials available in your own instance.
 
-## What this workflow does
+**Workflow file:** `AI-Powered-Content-Creation-using-n8n-.json`
 
-- Accepts a simple form input (Topic, optional keywords/hashtags and link).
-- Uses an LLM agent to generate structured, platform-specific posts (LinkedIn, Instagram, Facebook, X/Twitter, TikTok, Threads, YouTube Shorts).
-- Optionally generates or accepts an image for posts (OpenAI/third-party image APIs or user upload).
-- Sends a review email to a configured approver (Gmail) and waits for approval before publishing.
-- Publishes to social networks via the appropriate nodes (Facebook Graph / Instagram, X, LinkedIn). Results are collected and summarized (email/Telegram).
+## What this workflow demonstrates
 
-## Key features
+- Form-based content intake
+- An AI-agent step that generates structured content for multiple platforms
+- Structured JSON output validation/parsing
+- Optional image generation and image-hosting steps
+- Human approval before publishing
+- Multi-channel publishing nodes
+- Result aggregation and notification via email/Telegram
 
-- Multi-platform content outputs tailored to each network's style and limits
-- Structured output schema (JSON) so you can adapt downstream processing or integrations
-- Optional image generation and upload (imgbb example included)
-- Approval gate (email-based) before publishing
-- Result aggregation and status reporting (email + Telegram)
+Targeted output formats include LinkedIn, Instagram, Facebook, X/Twitter, TikTok, Threads, and YouTube Shorts.
+
+## High-level flow
+
+1. A user submits a topic, optional keywords/hashtags, and a link.
+2. The content agent produces platform-specific drafts and media suggestions.
+3. Structured output is parsed into fields used by downstream nodes.
+4. A review email is sent to an approver.
+5. Only approved content proceeds to publishing nodes.
+6. Publishing results are aggregated and sent through configured notification channels.
 
 ## Prerequisites
 
-- n8n (self-hosted or cloud) with access to the editor and runtime
-- Accounts / API keys for the services you want to use (see Credentials below)
-- Node versions: workflow uses standard n8n nodes and the LangChain/OpenAI/agent nodes
+- n8n Cloud or a self-hosted n8n instance
+- Credentials for the model/provider nodes you enable
+- Credentials for the social platforms you actually want to publish to
+- Optional Gmail, Telegram, search, and image-hosting credentials depending on enabled nodes
 
-## Credentials & Environment variables
-
-You must configure the following credentials in n8n (names from the workflow are shown in the JSON):
-
-- OpenAI account (used by several OpenAI/langchain nodes)
-- Google (Gemini / PaLM) credentials (optional)
-- SERP API (optional, used by the workflow for research)
-- Gmail OAuth2 (for approval and result emails)
-- Facebook Graph API (for Facebook & Instagram endpoints)
-- LinkedIn OAuth2
-- X / Twitter OAuth2
-- Telegram Bot token (optional, for status notifications)
-- imgbb API key (optional, if using imgbb for image uploads)
-
-Environment variables referenced in the workflow (set these in your n8n environment or in the credentials where appropriate):
-
-- `IMGBB_API_KEY` — imgbb API key used by the imgbb upload node
-- `EMAIL_ADDRESS_JOE` — approver email address used by send-and-wait Gmail nodes
-- `TELEGRAM_CHAT_ID` — chat id used by Telegram results node
-
-Note: the workflow also contains placeholder values such as `[your-unique-id]` which must be replaced with your platform-specific page/organization IDs.
-
-## Importing the workflow into n8n
+## Import
 
 1. Open your n8n instance.
-2. Go to Workflows → Import and select `AI-Powered-Content-Creation-using-n8n-.json`.
-3. Review nodes and connect the appropriate credential objects (click each node that requires credentials and select the matching credential in your n8n instance).
+2. Create or open a workflow.
+3. Import `AI-Powered-Content-Creation-using-n8n-.json`.
+4. Reconnect every credential-backed node to credentials from **your** n8n instance.
+5. Replace placeholder page/organization IDs and environment-variable references.
+6. Disable provider/platform branches you do not intend to use.
+7. Test with non-production accounts/content before enabling publishing.
 
-## Configuration checklist (before running)
+## Configuration referenced by the workflow
 
-- Configure all credentials listed above in the n8n Credentials area.
-- Replace placeholder node parameters such as `[your-unique-id]` with real page or organization IDs.
-- Set environment variables in your n8n runtime (or replace env references in nodes with explicit values if you prefer).
-- Optionally enable/disable LLM nodes depending on which provider you use (OpenAI, Google Gemini, etc.).
+Depending on which branches are enabled, the export references integrations such as:
 
-## How the workflow is organized (high level)
+- OpenAI / LangChain model nodes
+- Google Gemini / PaLM-compatible model credentials
+- Gmail OAuth2 for approval and result messages
+- Facebook / Instagram Graph API
+- LinkedIn OAuth2
+- X / Twitter OAuth2
+- Telegram Bot
+- imgbb image upload
+- Optional search/research provider nodes
 
-- `Submit Social Post Details` (formTrigger): user-facing form to provide Topic, Keywords, Link
-- `Social Media Content Factory` (agent): central LangChain agent that generates a structured JSON output using a schema for all target platforms
-- LLM nodes (OpenAI / gpt-4o-mini / Gemini): language model backends used by the agent
-- `Social Media Content` (output parser): validates & parses agent output to structured JSON
-- Image generation / upload: OpenAI image node, optional external image generation (pollinations.ai) and imgbb upload
-- `Gmail User for Approval`: sends approval email and waits for double-confirm approval before publishing
-- Publish nodes: `X Post`, `Instragram Post`, `Facebook Post`, `LinkedIn Post` — these nodes attempt publishing and return status
-- Aggregation & results: nodes to gather and send results via Gmail and Telegram
+Environment-variable style values referenced by the workflow include:
 
-## Example usage flow
+- `IMGBB_API_KEY`
+- `EMAIL_ADDRESS_JOE`
+- `TELEGRAM_CHAT_ID`
 
-1. A user submits the form with a Topic (e.g., "Why n8n is the Best Workflow Automation Tool").
-2. The agent generates platform-specific post drafts and image suggestions.
-3. The workflow sends an approval email to the configured approver. The approver can approve/reject via the email flow.
-4. If approved, the workflow posts to the configured platforms and collects responses.
-5. A summary email and Telegram notification are sent with the publish results.
+The workflow also contains placeholder IDs such as `[your-unique-id]` that must be replaced for your accounts.
 
-## Security & privacy notes
+## Credential-export note
 
-- Do not commit real API keys or OAuth tokens to source control. Store secrets in n8n credentials or environment variables.
-- Review privacy requirements for any user-provided content and do not forward sensitive data to third-party services without consent.
+n8n workflow exports can contain **credential reference IDs/names and instance metadata** even when they do not contain the underlying secret values. The committed snapshot includes those kinds of references, so importing it into another instance still requires reconnecting each node to local credentials.
+
+No real API key should ever be committed to this repository. If you fork or re-export the workflow, review the JSON before publishing it and keep tokens, OAuth secrets, passwords, and private webhook URLs out of source control.
+
+## Notable nodes / sections
+
+- `Submit Social Post Details` — form trigger for the content brief
+- `Social Media Content Factory` — central content-generation agent
+- `Social Media Content` — structured-output parser/schema
+- LLM nodes — provider backends such as OpenAI/Gemini
+- Image generation/upload — optional media branch
+- `Gmail User for Approval` — human approval gate
+- Publishing nodes — X, Instagram, Facebook, LinkedIn and other configured channels
+- Aggregation/results — status collection and Gmail/Telegram reporting
 
 ## Troubleshooting
 
-- Common failures:
-	- 401 / access token errors: ensure OAuth credentials are connected and valid, refresh tokens if necessary.
-	- `Object with ID` errors from Facebook/Instagram: confirm the page/IG business account IDs and Graph API permissions.
-	- Image upload errors: check `IMGBB_API_KEY` and file sizes allowed by the service.
+**401 / OAuth errors**  
+Reconnect the affected credential and verify the scopes required by that platform.
 
-- Debugging tips:
-	- Run the workflow in n8n editor with small test inputs and inspect node outputs.
-	- Temporarily enable `continueOnFail` on nodes to collect more results for troubleshooting.
+**Facebook / Instagram object-ID errors**  
+Confirm the page/business account IDs and Graph API permissions.
 
-## Extending the workflow
+**Image upload failures**  
+Check the configured image-hosting credential, accepted file size/type, and whether the node is still enabled.
 
-- Add new platform nodes (e.g., YouTube API, additional Telegram sinks) and map the structured JSON output to the node inputs.
-- Replace or augment the LLMs with your preferred provider by swapping or enabling/disabling the model nodes.
+**Imported nodes show missing credentials**  
+This is expected on a different n8n instance. Select/create your local credential for each node.
 
-## Attribution & License
+**Provider/model node errors**  
+The workflow is a 2025 snapshot. If a model name or node version is no longer available, select a currently supported equivalent and retest the structured output.
 
-This repo contains an n8n workflow and supporting notes. Treat the JSON workflow itself as the single source of truth for node configurations. No explicit license file is included — add a LICENSE if you want to open source it under a specific license.
+## Security and reliability
 
----
+- Keep the approval gate enabled while testing publishing branches.
+- Use n8n credentials/environment variables rather than inline secrets.
+- Give social-platform credentials only the permissions required for the workflow.
+- Test against sandbox/non-production destinations where possible.
+- Review user-provided content before forwarding sensitive information to third-party AI services.
 
+## Status
+
+**Working workflow snapshot / portfolio automation project.** The architecture remains useful, but external APIs, node versions, and model names can change. Treat the JSON as an importable starting point rather than a promise that every third-party integration will run unchanged forever.
+
+## License
+
+No explicit open-source license is currently included. Public visibility allows people to read the source, but it does not automatically grant reuse rights; add a license only after choosing the terms you want.
